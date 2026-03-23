@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LibraryMS — Java Intern Project</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0d0f14;
+    --bg2:       #13161e;
+    --bg3:       #1a1e2a;
+    --bg4:       #222736;
+    --border:    #2a2f3f;
+    --border2:   #363c50;
+    --text:      #e8eaf0;
+    --text2:     #9098b0;
+    --text3:     #5a6180;
+    --java:      #f89820;
+    --java-dim:  #7a4a0a;
+    --java-glow: rgba(248,152,32,0.15);
+    --blue:      #4a9eff;
+    --blue-dim:  #1a3a5c;
+    --green:     #4ecb71;
+    --green-dim: #1a3d26;
+    --red:       #ff5f5f;
+    --red-dim:   #3d1a1a;
+    --amber:     #ffbe3d;
+    --amber-dim: #3d2c0a;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-sans: 'Syne', sans-serif;
+    --radius:    8px;
+    --radius-lg: 12px;
+  }
+
+  html { font-size: 14px; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* ── LAYOUT ── */
+  .wrapper { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem 2rem; }
+
+  /* ── HEADER ── */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.25rem 0 1rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+    animation: fadeDown 0.4s ease;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand-icon {
+    width: 42px; height: 42px; border-radius: var(--radius);
+    background: var(--java-glow);
+    border: 1px solid var(--java-dim);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .brand-name { font-family: var(--font-sans); font-size: 20px; font-weight: 700; color: var(--text); }
+  .brand-tag { font-size: 10px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-top: 1px; }
+  .header-badges { display: flex; gap: 8px; }
+  .pill {
+    padding: 4px 10px; border-radius: 20px; font-size: 10px;
+    font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase;
+    border: 1px solid;
+  }
+  .pill-java  { background: var(--java-dim);  color: var(--java);  border-color: var(--java-dim); }
+  .pill-blue  { background: var(--blue-dim);  color: var(--blue);  border-color: var(--blue-dim); }
+  .pill-green { background: var(--green-dim); color: var(--green); border-color: var(--green-dim); }
+
+  /* ── STATS ── */
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-bottom: 1.5rem; }
+  .stat {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 1rem 1.25rem;
+    position: relative; overflow: hidden;
+    animation: fadeUp 0.4s ease both;
+    transition: border-color 0.2s;
+  }
+  .stat:hover { border-color: var(--border2); }
+  .stat::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 2px; border-radius: 2px 2px 0 0;
+  }
+  .stat-books::before  { background: var(--java); }
+  .stat-members::before { background: var(--blue); }
+  .stat-issued::before { background: var(--amber); }
+  .stat-overdue::before { background: var(--red); }
+  .stat-num { font-family: var(--font-sans); font-size: 28px; font-weight: 700; }
+  .stat-books  .stat-num { color: var(--java); }
+  .stat-members .stat-num { color: var(--blue); }
+  .stat-issued  .stat-num { color: var(--amber); }
+  .stat-overdue .stat-num { color: var(--red); }
+  .stat-label { font-size: 11px; color: var(--text3); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.8px; }
+  .stat-icon { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); font-size: 28px; opacity: 0.08; }
+
+  /* ── OVERDUE BANNER ── */
+  #overdue-banner {
+    background: var(--red-dim); border: 1px solid #5a2020;
+    border-radius: var(--radius); padding: 10px 14px;
+    font-size: 11px; color: #ff8a8a;
+    margin-bottom: 1rem; display: none; align-items: flex-start; gap: 10px;
+    animation: fadeUp 0.3s ease;
+  }
+  #overdue-banner.show { display: flex; }
+  .overdue-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); flex-shrink: 0; margin-top: 2px; }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex; gap: 2px; margin-bottom: 1.25rem;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 4px;
+  }
+  .tab {
+    flex: 1; padding: 8px 12px; text-align: center;
+    font-size: 12px; font-family: var(--font-mono);
+    background: none; border: none; color: var(--text3);
+    border-radius: var(--radius); cursor: pointer;
+    transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .tab:hover { color: var(--text2); background: var(--bg3); }
+  .tab.active { background: var(--bg4); color: var(--java); border: 1px solid var(--border2); }
+  .tab-icon { font-size: 14px; }
+
+  /* ── PANELS ── */
+  .panel { display: none; animation: fadeUp 0.25s ease; }
+  .panel.active { display: block; }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    display: flex; gap: 8px; margin-bottom: 1rem;
+    align-items: center; flex-wrap: wrap;
+  }
+  .search {
+    flex: 1; min-width: 160px;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 8px 12px;
+    color: var(--text); font-size: 12px; font-family: var(--font-mono);
+    transition: border-color 0.2s;
+  }
+  .search::placeholder { color: var(--text3); }
+  .search:focus { outline: none; border-color: var(--java); }
+  select.search { cursor: pointer; }
+
+  .btn {
+    padding: 8px 14px; font-size: 12px; font-family: var(--font-mono);
+    border-radius: var(--radius); border: 1px solid var(--border2);
+    background: var(--bg3); color: var(--text);
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .btn:hover { background: var(--bg4); border-color: var(--text3); }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--java); color: #1a0a00; border-color: var(--java); font-weight: 600; }
+  .btn-primary:hover { background: #e08010; border-color: #e08010; }
+  .btn-sm { padding: 4px 10px; font-size: 11px; }
+  .btn-danger { color: var(--red); border-color: var(--border); }
+  .btn-danger:hover { background: var(--red-dim); border-color: var(--red); }
+  .btn-success { color: var(--green); border-color: var(--border); }
+  .btn-success:hover { background: var(--green-dim); border-color: var(--green); }
+
+  /* ── TABLE ── */
+  .table-wrap { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--bg3); }
+  th {
+    padding: 10px 14px; text-align: left;
+    font-size: 10px; font-weight: 500; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--text3);
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 11px 14px; font-size: 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text); vertical-align: middle;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr { transition: background 0.15s; }
+  tbody tr:hover td { background: var(--bg2); }
+  .td-actions { display: flex; gap: 6px; }
+  .td-mono { font-family: var(--font-mono); font-size: 10px; color: var(--text3); }
+
+  /* ── BADGES ── */
+  .badge {
+    display: inline-block; padding: 3px 9px; border-radius: 20px;
+    font-size: 10px; font-weight: 500; letter-spacing: 0.4px; border: 1px solid;
+  }
+  .badge-available { background: var(--green-dim); color: var(--green); border-color: #1e4a2c; }
+  .badge-partial   { background: var(--amber-dim);  color: var(--amber); border-color: #3d2c0a; }
+  .badge-borrowed  { background: var(--red-dim);    color: #ff8a8a;     border-color: #4a2020; }
+  .badge-returned  { background: var(--green-dim);  color: var(--green); border-color: #1e4a2c; }
+  .badge-issued    { background: var(--amber-dim);  color: var(--amber); border-color: #3d2c0a; }
+  .badge-overdue   { background: var(--red-dim);    color: var(--red);   border-color: #5a2020; }
+  .badge-genre     { background: #1a1f30; color: var(--text2); border-color: var(--border2); }
+  .badge-member    { background: var(--blue-dim);   color: var(--blue);  border-color: #1a3a5c; }
+
+  .empty-state { text-align: center; padding: 3rem; color: var(--text3); font-size: 12px; }
+  .empty-state .empty-icon { font-size: 36px; margin-bottom: 10px; opacity: 0.4; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(3px);
+    z-index: 200; align-items: center; justify-content: center;
+    padding: 1rem;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: var(--radius-lg); padding: 1.75rem;
+    width: 420px; max-width: 100%;
+    animation: modalIn 0.2s ease;
+  }
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1.25rem;
+  }
+  .modal-title { font-family: var(--font-sans); font-size: 16px; font-weight: 600; color: var(--text); }
+  .modal-close {
+    background: none; border: none; color: var(--text3);
+    font-size: 18px; cursor: pointer; line-height: 1; padding: 2px 6px;
+    border-radius: 4px; transition: color 0.15s;
+  }
+  .modal-close:hover { color: var(--text); }
+  .form-row { margin-bottom: 12px; }
+  .form-label { display: block; font-size: 11px; color: var(--text3); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.6px; }
+  .form-input {
+    width: 100%; padding: 9px 12px; font-size: 12px;
+    font-family: var(--font-mono);
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: var(--radius); color: var(--text);
+    transition: border-color 0.2s;
+  }
+  .form-input::placeholder { color: var(--text3); }
+  .form-input:focus { outline: none; border-color: var(--java); }
+  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.5rem; }
+  .modal-error { color: var(--red); font-size: 11px; margin-top: 8px; display: none; }
+
+  /* ── TOAST ── */
+  .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 300; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: var(--radius); padding: 10px 16px;
+    font-size: 12px; color: var(--text);
+    animation: toastIn 0.2s ease;
+    display: flex; align-items: center; gap: 8px;
+    min-width: 220px;
+  }
+  .toast.success { border-left: 3px solid var(--green); }
+  .toast.error   { border-left: 3px solid var(--red); }
+  .toast.info    { border-left: 3px solid var(--blue); }
+
+  /* ── CODE PANEL ── */
+  .code-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 0.75rem; }
+  .code-tab {
+    padding: 5px 12px; font-size: 11px; font-family: var(--font-mono);
+    border-radius: 20px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--bg2); color: var(--text3);
+    transition: all 0.15s;
+  }
+  .code-tab:hover { color: var(--text2); border-color: var(--border2); }
+  .code-tab.active { background: var(--java-dim); color: var(--java); border-color: var(--java-dim); }
+  .code-block {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 1.25rem 1.5rem;
+    overflow-x: auto;
+  }
+  .code-block pre { font-size: 12px; line-height: 1.75; white-space: pre; }
+  .kw  { color: #79b8ff; }
+  .cls { color: var(--java); }
+  .str { color: #85e89d; }
+  .cmt { color: var(--text3); font-style: italic; }
+  .ann { color: #b392f0; }
+  .num { color: #79b8ff; }
+
+  .pattern-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1rem; }
+  .pattern-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px 14px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .pattern-card:hover, .pattern-card.active { border-color: var(--java); background: var(--bg3); }
+  .pattern-card.active .pattern-name { color: var(--java); }
+  .pattern-name { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 3px; }
+  .pattern-desc { font-size: 10px; color: var(--text3); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeDown  { from { opacity:0; transform: translateY(-10px); } to { opacity:1; transform: none; } }
+  @keyframes fadeUp    { from { opacity:0; transform: translateY(8px); }  to { opacity:1; transform: none; } }
+  @keyframes modalIn   { from { opacity:0; transform: scale(0.95); }      to { opacity:1; transform: none; } }
+  @keyframes toastIn   { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: none; } }
+  @keyframes toastOut  { from { opacity:1; } to { opacity:0; transform: translateX(20px); } }
+
+  .stat:nth-child(1) { animation-delay: 0.05s; }
+  .stat:nth-child(2) { animation-delay: 0.10s; }
+  .stat:nth-child(3) { animation-delay: 0.15s; }
+  .stat:nth-child(4) { animation-delay: 0.20s; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .tab span.tab-text { display: none; }
+    .header-badges { display: none; }
+    .pattern-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 480px) {
+    .form-row-2 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+  <!-- HEADER -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">☕</div>
+      <div>
+        <div class="brand-name">LibraryMS</div>
+        <div class="brand-tag">Java Intern Project · v1.0</div>
+      </div>
+    </div>
+    <div class="header-badges">
+      <span class="pill pill-java">OOP Design</span>
+      <span class="pill pill-blue">CRUD + Search</span>
+      <span class="pill pill-green">Design Patterns</span>
+    </div>
+  </header>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat stat-books">
+      <div class="stat-num" id="s-books">0</div>
+      <div class="stat-label">Book Titles</div>
+      <div class="stat-icon">📚</div>
+    </div>
+    <div class="stat stat-members">
+      <div class="stat-num" id="s-members">0</div>
+      <div class="stat-label">Members</div>
+      <div class="stat-icon">👤</div>
+    </div>
+    <div class="stat stat-issued">
+      <div class="stat-num" id="s-issued">0</div>
+      <div class="stat-label">Books Issued</div>
+      <div class="stat-icon">🔄</div>
+    </div>
+    <div class="stat stat-overdue">
+      <div class="stat-num" id="s-overdue">0</div>
+      <div class="stat-label">Overdue</div>
+      <div class="stat-icon">⚠️</div>
+    </div>
+  </div>
+
+  <!-- OVERDUE BANNER -->
+  <div id="overdue-banner">
+    <div class="overdue-dot"></div>
+    <div id="overdue-text"></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('books',this)">
+      <span class="tab-icon">📚</span><span class="tab-text">Books</span>
+    </button>
+    <button class="tab" onclick="switchTab('members',this)">
+      <span class="tab-icon">👤</span><span class="tab-text">Members</span>
+    </button>
+    <button class="tab" onclick="switchTab('transactions',this)">
+      <span class="tab-icon">🔄</span><span class="tab-text">Transactions</span>
+    </button>
+    <button class="tab" onclick="switchTab('code',this)">
+      <span class="tab-icon">☕</span><span class="tab-text">Java Design</span>
+    </button>
+  </div>
+
+  <!-- ══ BOOKS PANEL ══ -->
+  <div class="panel active" id="panel-books">
+    <div class="toolbar">
+      <input class="search" id="book-search" placeholder="Search title, author, ISBN…" oninput="renderBooks()">
+      <select class="search" id="genre-filter" style="max-width:150px;" onchange="renderBooks()">
+        <option value="">All Genres</option>
+        <option>Programming</option>
+        <option>Data Structures</option>
+        <option>Design Patterns</option>
+        <option>Algorithms</option>
+        <option>Fiction</option>
+        <option>Science</option>
+        <option>Database</option>
+      </select>
+      <button class="btn btn-primary" onclick="openBookModal()">+ Add Book</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ISBN</th>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Genre</th>
+            <th>Copies</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="book-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ MEMBERS PANEL ══ -->
+  <div class="panel" id="panel-members">
+    <div class="toolbar">
+      <input class="search" id="member-search" placeholder="Search member name or ID…" oninput="renderMembers()">
+      <button class="btn btn-primary" onclick="openMemberModal()">+ Add Member</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Member ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Borrowed</th>
+            <th>Joined</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="member-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ TRANSACTIONS PANEL ══ -->
+  <div class="panel" id="panel-transactions">
+    <div class="toolbar">
+      <input class="search" id="txn-search" placeholder="Search by member, book, ID…" oninput="renderTxns()">
+      <select class="search" id="txn-filter" style="max-width:140px;" onchange="renderTxns()">
+        <option value="">All Status</option>
+        <option value="issued">Issued</option>
+        <option value="overdue">Overdue</option>
+        <option value="returned">Returned</option>
+      </select>
+      <button class="btn btn-primary" onclick="openBorrowModal()">+ Issue Book</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Txn ID</th>
+            <th>Member</th>
+            <th>Book</th>
+            <th>Issued</th>
+            <th>Due Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="txn-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ JAVA DESIGN PANEL ══ -->
+  <div class="panel" id="panel-code">
+    <div class="pattern-grid" id="pattern-grid"></div>
+    <div class="code-block">
+      <pre id="code-display"></pre>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toasts"></div>
+
+<!-- ══ MODAL ══ -->
+<div class="modal-overlay" id="modal-overlay" onclick="overlayClose(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Modal</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+    <div id="modal-error" class="modal-error"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="modal-save-btn" onclick="saveModal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════
+//  DATA STORE
+// ═══════════════════════════════
+let books = [
+  { id:'B001', isbn:'978-0-13-468599-1', title:'Effective Java',              author:'Joshua Bloch',       genre:'Programming',     copies:3, available:2 },
+  { id:'B002', isbn:'978-0-13-235088-4', title:'Clean Code',                  author:'Robert C. Martin',   genre:'Programming',     copies:2, available:0 },
+  { id:'B003', isbn:'978-0-20-163361-5', title:'Design Patterns (GoF)',        author:'Gang of Four',       genre:'Design Patterns', copies:4, available:1 },
+  { id:'B004', isbn:'978-0-26-203293-3', title:'Introduction to Algorithms',   author:'Cormen et al.',      genre:'Algorithms',      copies:3, available:3 },
+  { id:'B005', isbn:'978-0-59-651774-8', title:'Head First Java',              author:'Sierra & Bates',     genre:'Programming',     copies:5, available:4 },
+  { id:'B006', isbn:'978-0-13-110362-7', title:'The C Programming Language',   author:'Kernighan & Ritchie',genre:'Programming',     copies:2, available:2 },
+  { id:'B007', isbn:'978-0-13-140844-7', title:'Refactoring',                  author:'Martin Fowler',      genre:'Programming',     copies:2, available:1 },
+  { id:'B008', isbn:'978-0-13-486938-4', title:'Data Structures & Algorithms', author:'Goodrich & Tamassia',genre:'Data Structures', copies:3, available:2 },
+];
+
+let members = [
+  { id:'M001', name:'Aanya Sharma',  email:'aanya@example.com',  phone:'9876543210', borrowed:1, joined:'2024-01-15' },
+  { id:'M002', name:'Rahul Verma',   email:'rahul@example.com',  phone:'9876543211', borrowed:2, joined:'2024-02-20' },
+  { id:'M003', name:'Priya Nair',    email:'priya@example.com',  phone:'9876543212', borrowed:0, joined:'2024-03-10' },
+  { id:'M004', name:'Arjun Patel',   email:'arjun@example.com',  phone:'9876543213', borrowed:1, joined:'2024-04-05' },
+  { id:'M005', name:'Sneha Reddy',   email:'sneha@example.com',  phone:'9876543214', borrowed:0, joined:'2024-05-12' },
+];
+
+let transactions = [
+  { id:'T001', memberId:'M001', bookId:'B003', issue:'2025-02-10', due:'2025-02-24', returned:false },
+  { id:'T002', memberId:'M002', bookId:'B002', issue:'2025-02-01', due:'2025-02-15', returned:false },
+  { id:'T003', memberId:'M002', bookId:'B001', issue:'2025-02-05', due:'2025-02-19', returned:false },
+  { id:'T004', memberId:'M004', bookId:'B007', issue:'2025-03-01', due:'2025-03-15', returned:false },
+  { id:'T005', memberId:'M001', bookId:'B005', issue:'2025-01-10', due:'2025-01-24', returned:true  },
+];
+
+let nBook = 9, nMember = 6, nTxn = 6;
+let currentModal = null, editId = null;
+
+// ═══════════════════════════════
+//  UTILITIES
+// ═══════════════════════════════
+function pad(n,p='')  { return p + String(n).padStart(3,'0'); }
+function today()      { return new Date().toISOString().split('T')[0]; }
+function dueDate()    { const d=new Date(); d.setDate(d.getDate()+14); return d.toISOString().split('T')[0]; }
+function isOverdue(t) { return !t.returned && new Date(t.due) < new Date(); }
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ═══════════════════════════════
+//  TOAST
+// ═══════════════════════════════
+function toast(msg, type='info') {
+  const icons = { success:'✓', error:'✕', info:'ℹ' };
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${icons[type]||'•'}</span><span>${escHtml(msg)}</span>`;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => {
+    el.style.animation = 'toastOut 0.3s ease forwards';
+    setTimeout(() => el.remove(), 300);
+  }, 3000);
+}
+
+// ═══════════════════════════════
+//  STATS & BANNER
+// ═══════════════════════════════
+function updateStats() {
+  const issued  = books.reduce((a,b)=>a+(b.copies-b.available),0);
+  const overdue = transactions.filter(t=>isOverdue(t)).length;
+  document.getElementById('s-books').textContent   = books.length;
+  document.getElementById('s-members').textContent = members.length;
+  document.getElementById('s-issued').textContent  = issued;
+  document.getElementById('s-overdue').textContent = overdue;
+
+  const banner = document.getElementById('overdue-banner');
+  const ovList = transactions.filter(t=>isOverdue(t));
+  if (ovList.length > 0) {
+    banner.classList.add('show');
+    const items = ovList.map(t => {
+      const m = members.find(x=>x.id===t.memberId);
+      const b = books.find(x=>x.id===t.bookId);
+      return `${m?m.name:t.memberId} → "${b?b.title:t.bookId}" (due ${t.due})`;
+    });
+    document.getElementById('overdue-text').textContent =
+      `${ovList.length} overdue return${ovList.length>1?'s':''}: ${items.join('  ·  ')}`;
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+// ═══════════════════════════════
+//  BOOK STATUS BADGE
+// ═══════════════════════════════
+function bookStatusBadge(b) {
+  if (b.available === 0) return `<span class="badge badge-borrowed">Fully Borrowed</span>`;
+  if (b.available === b.copies) return `<span class="badge badge-available">Available</span>`;
+  return `<span class="badge badge-partial">${b.available} left</span>`;
+}
+
+// ═══════════════════════════════
+//  RENDER BOOKS
+// ═══════════════════════════════
+function renderBooks() {
+  const q = document.getElementById('book-search').value.toLowerCase();
+  const g = document.getElementById('genre-filter').value;
+  const list = books.filter(b =>
+    (!g || b.genre === g) &&
+    (!q || b.title.toLowerCase().includes(q) ||
+           b.author.toLowerCase().includes(q) ||
+           b.isbn.includes(q))
+  );
+  const tb = document.getElementById('book-table');
+  if (!list.length) {
+    tb.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📚</div>No books found.</div></td></tr>`;
+    return;
+  }
+  tb.innerHTML = list.map(b => `
+    <tr>
+      <td class="td-mono">${escHtml(b.isbn)}</td>
+      <td style="font-weight:500;">${escHtml(b.title)}</td>
+      <td style="color:var(--text2);">${escHtml(b.author)}</td>
+      <td><span class="badge badge-genre">${escHtml(b.genre)}</span></td>
+      <td style="color:var(--text2);">${b.available}/${b.copies}</td>
+      <td>${bookStatusBadge(b)}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-sm" onclick="openEditBookModal('${escHtml(b.id)}')">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteBook('${escHtml(b.id)}')">Delete</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+// ═══════════════════════════════
+//  RENDER MEMBERS
+// ═══════════════════════════════
+function renderMembers() {
+  const q = document.getElementById('member-search').value.toLowerCase();
+  const list = members.filter(m =>
+    !q || m.name.toLowerCase().includes(q) ||
+          m.id.toLowerCase().includes(q) ||
+          m.email.toLowerCase().includes(q)
+  );
+  const tb = document.getElementById('member-table');
+  if (!list.length) {
+    tb.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">👤</div>No members found.</div></td></tr>`;
+    return;
+  }
+  tb.innerHTML = list.map(m => `
+    <tr>
+      <td class="td-mono">${escHtml(m.id)}</td>
+      <td style="font-weight:500;">${escHtml(m.name)}</td>
+      <td style="color:var(--text2);">${escHtml(m.email)}</td>
+      <td style="color:var(--text2);">${escHtml(m.phone||'—')}</td>
+      <td>
+        <span class="badge ${m.borrowed>0?'badge-issued':'badge-available'}">
+          ${m.borrowed} book${m.borrowed!==1?'s':''}
+        </span>
+      </td>
+      <td style="color:var(--text3);font-size:11px;">${escHtml(m.joined)}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-sm btn-danger" onclick="deleteMember('${escHtml(m.id)}')">Remove</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+// ═══════════════════════════════
+//  RENDER TRANSACTIONS
+// ═══════════════════════════════
+function renderTxns() {
+  const q  = document.getElementById('txn-search').value.toLowerCase();
+  const sf = document.getElementById('txn-filter').value;
+  let list = transactions.filter(t => {
+    const m = members.find(x=>x.id===t.memberId);
+    const b = books.find(x=>x.id===t.bookId);
+    return !q || (m&&m.name.toLowerCase().includes(q)) ||
+                 (b&&b.title.toLowerCase().includes(q)) ||
+                 t.id.toLowerCase().includes(q);
+  });
+  if (sf === 'issued')   list = list.filter(t => !t.returned && !isOverdue(t));
+  if (sf === 'overdue')  list = list.filter(t => isOverdue(t));
+  if (sf === 'returned') list = list.filter(t => t.returned);
+
+  const tb = document.getElementById('txn-table');
+  if (!list.length) {
+    tb.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">🔄</div>No transactions found.</div></td></tr>`;
+    return;
+  }
+  tb.innerHTML = list.map(t => {
+    const m = members.find(x=>x.id===t.memberId);
+    const b = books.find(x=>x.id===t.bookId);
+    const over = isOverdue(t);
+    const badge = t.returned
+      ? `<span class="badge badge-returned">Returned</span>`
+      : over
+        ? `<span class="badge badge-overdue">Overdue</span>`
+        : `<span class="badge badge-issued">Issued</span>`;
+    const dueStyle = over && !t.returned ? 'color:var(--red);' : 'color:var(--text3);';
+    return `
+    <tr>
+      <td class="td-mono">${escHtml(t.id)}</td>
+      <td>${m ? escHtml(m.name) : `<span style="color:var(--red)">${escHtml(t.memberId)}</span>`}</td>
+      <td>${b ? escHtml(b.title) : `<span style="color:var(--red)">${escHtml(t.bookId)}</span>`}</td>
+      <td style="color:var(--text3);font-size:11px;">${escHtml(t.issue)}</td>
+      <td style="font-size:11px;${dueStyle}">${escHtml(t.due)}</td>
+      <td>${badge}</td>
+      <td><div class="td-actions">
+        ${!t.returned
+          ? `<button class="btn btn-sm btn-success" onclick="returnBook('${escHtml(t.id)}')">Return</button>`
+          : `<span style="color:var(--text3);font-size:11px;">Done</span>`}
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════
+//  DELETE
+// ═══════════════════════════════
+function deleteBook(id) {
+  const b = books.find(x=>x.id===id);
+  if (!b) return;
+  if (!confirm(`Delete "${b.title}"?`)) return;
+  books = books.filter(x=>x.id!==id);
+  refresh(); toast(`"${b.title}" removed.`, 'info');
+}
+function deleteMember(id) {
+  const m = members.find(x=>x.id===id);
+  if (!m) return;
+  if (m.borrowed > 0) { toast(`${m.name} has unreturned books.`, 'error'); return; }
+  if (!confirm(`Remove member "${m.name}"?`)) return;
+  members = members.filter(x=>x.id!==id);
+  refresh(); toast(`Member "${m.name}" removed.`, 'info');
+}
+function returnBook(txnId) {
+  const t = transactions.find(x=>x.id===txnId);
+  if (!t || t.returned) return;
+  t.returned = true;
+  const b = books.find(x=>x.id===t.bookId);
+  const m = members.find(x=>x.id===t.memberId);
+  if (b) b.available = Math.min(b.copies, b.available+1);
+  if (m) m.borrowed  = Math.max(0, m.borrowed-1);
+  refresh(); toast('Book returned successfully.', 'success');
+}
+
+// ═══════════════════════════════
+//  MODALS
+// ═══════════════════════════════
+function openBookModal() {
+  currentModal='add-book'; editId=null;
+  document.getElementById('modal-title').textContent = 'Add New Book';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-row"><label class="form-label">ISBN</label>
+      <input class="form-input" id="f-isbn" placeholder="978-x-xxx-xxxxx-x"></div>
+    <div class="form-row"><label class="form-label">Title</label>
+      <input class="form-input" id="f-title" placeholder="Book title"></div>
+    <div class="form-row"><label class="form-label">Author</label>
+      <input class="form-input" id="f-author" placeholder="Author name"></div>
+    <div class="form-row-2">
+      <div class="form-row"><label class="form-label">Genre</label>
+        <select class="form-input" id="f-genre">
+          <option>Programming</option><option>Data Structures</option>
+          <option>Design Patterns</option><option>Algorithms</option>
+          <option>Fiction</option><option>Science</option><option>Database</option>
+        </select></div>
+      <div class="form-row"><label class="form-label">Total Copies</label>
+        <input class="form-input" id="f-copies" type="number" value="1" min="1"></div>
+    </div>`;
+  showModal();
+}
+
+function openEditBookModal(id) {
+  const b = books.find(x=>x.id===id); if(!b) return;
+  currentModal='edit-book'; editId=id;
+  document.getElementById('modal-title').textContent = 'Edit Book';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-row"><label class="form-label">ISBN</label>
+      <input class="form-input" id="f-isbn" value="${escHtml(b.isbn)}"></div>
+    <div class="form-row"><label class="form-label">Title</label>
+      <input class="form-input" id="f-title" value="${escHtml(b.title)}"></div>
+    <div class="form-row"><label class="form-label">Author</label>
+      <input class="form-input" id="f-author" value="${escHtml(b.author)}"></div>
+    <div class="form-row-2">
+      <div class="form-row"><label class="form-label">Genre</label>
+        <select class="form-input" id="f-genre">
+          <option>Programming</option><option>Data Structures</option>
+          <option>Design Patterns</option><option>Algorithms</option>
+          <option>Fiction</option><option>Science</option><option>Database</option>
+        </select></div>
+      <div class="form-row"><label class="form-label">Total Copies</label>
+        <input class="form-input" id="f-copies" type="number" value="${b.copies}" min="${b.copies-b.available}"></div>
+    </div>`;
+  showModal();
+  document.getElementById('f-genre').value = b.genre;
+}
+
+function openMemberModal() {
+  currentModal='add-member'; editId=null;
+  document.getElementById('modal-title').textContent = 'Register New Member';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-row"><label class="form-label">Full Name</label>
+      <input class="form-input" id="f-name" placeholder="Member full name"></div>
+    <div class="form-row"><label class="form-label">Email</label>
+      <input class="form-input" id="f-email" type="email" placeholder="email@example.com"></div>
+    <div class="form-row"><label class="form-label">Phone</label>
+      <input class="form-input" id="f-phone" placeholder="10-digit phone number"></div>`;
+  showModal();
+}
+
+function openBorrowModal() {
+  currentModal='borrow'; editId=null;
+  document.getElementById('modal-title').textContent = 'Issue Book to Member';
+  const memberOpts = members.map(m =>
+    `<option value="${escHtml(m.id)}">${escHtml(m.name)} (${escHtml(m.id)})</option>`).join('');
+  const avail = books.filter(b=>b.available>0);
+  const bookOpts = avail.length
+    ? avail.map(b => `<option value="${escHtml(b.id)}">${escHtml(b.title)}</option>`).join('')
+    : `<option value="">— No books available —</option>`;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-row"><label class="form-label">Member</label>
+      <select class="form-input" id="f-member">${memberOpts}</select></div>
+    <div class="form-row"><label class="form-label">Book</label>
+      <select class="form-input" id="f-book">${bookOpts}</select></div>
+    <div class="form-row-2">
+      <div class="form-row"><label class="form-label">Issue Date</label>
+        <input class="form-input" id="f-issue" type="date" value="${today()}"></div>
+      <div class="form-row"><label class="form-label">Due Date</label>
+        <input class="form-input" id="f-due" type="date" value="${dueDate()}"></div>
+    </div>`;
+  showModal();
+}
+
+function showModal()  { document.getElementById('modal-overlay').classList.add('open'); showError(''); }
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+function overlayClose(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
+function showError(msg) {
+  const el = document.getElementById('modal-error');
+  el.textContent = msg; el.style.display = msg ? 'block' : 'none';
+}
+
+function saveModal() {
+  if (currentModal === 'add-book') {
+    const isbn   = document.getElementById('f-isbn').value.trim();
+    const title  = document.getElementById('f-title').value.trim();
+    const author = document.getElementById('f-author').value.trim();
+    const genre  = document.getElementById('f-genre').value;
+    const copies = parseInt(document.getElementById('f-copies').value)||1;
+    if (!title || !author) { showError('Title and author are required.'); return; }
+    books.push({ id:'B'+pad(nBook++), isbn, title, author, genre, copies, available:copies });
+    toast(`"${title}" added to library.`, 'success');
+  }
+  else if (currentModal === 'edit-book') {
+    const b = books.find(x=>x.id===editId); if(!b) return;
+    const newCopies = parseInt(document.getElementById('f-copies').value)||b.copies;
+    const diff = newCopies - b.copies;
+    b.isbn   = document.getElementById('f-isbn').value.trim();
+    b.title  = document.getElementById('f-title').value.trim();
+    b.author = document.getElementById('f-author').value.trim();
+    b.genre  = document.getElementById('f-genre').value;
+    b.copies = newCopies;
+    b.available = Math.max(0, b.available + diff);
+    toast(`"${b.title}" updated.`, 'success');
+  }
+  else if (currentModal === 'add-member') {
+    const name  = document.getElementById('f-name').value.trim();
+    const email = document.getElementById('f-email').value.trim();
+    const phone = document.getElementById('f-phone').value.trim();
+    if (!name)  { showError('Name is required.'); return; }
+    if (!email) { showError('Email is required.'); return; }
+    members.push({ id:'M'+pad(nMember++), name, email, phone, borrowed:0, joined:today() });
+    toast(`Member "${name}" registered.`, 'success');
+  }
+  else if (currentModal === 'borrow') {
+    const memberId = document.getElementById('f-member').value;
+    const bookId   = document.getElementById('f-book').value;
+    const issue    = document.getElementById('f-issue').value;
+    const due      = document.getElementById('f-due').value;
+    if (!bookId) { showError('No available books.'); return; }
+    const bk = books.find(x=>x.id===bookId);
+    const mb = members.find(x=>x.id===memberId);
+    if (!bk || bk.available < 1) { showError('Book not available.'); return; }
+    if (mb.borrowed >= 3) { showError(`${mb.name} has reached the borrow limit (3 books).`); return; }
+    bk.available--;
+    mb.borrowed++;
+    transactions.push({ id:'T'+pad(nTxn++), memberId, bookId, issue, due, returned:false });
+    toast(`"${bk.title}" issued to ${mb.name}.`, 'success');
+  }
+  closeModal(); refresh();
+}
+
+// ═══════════════════════════════
+//  TABS
+// ═══════════════════════════════
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+}
+
+function refresh() {
+  updateStats(); renderBooks(); renderMembers(); renderTxns();
+}
+
+// ═══════════════════════════════
+//  JAVA CODE SNIPPETS
+// ═══════════════════════════════
+const patterns = [
+  { key:'entity',      name:'Book Entity',         desc:'Encapsulation + OOP' },
+  { key:'member',      name:'Member (Inheritance)', desc:'Abstract class + Override' },
+  { key:'repo',        name:'Repository Pattern',   desc:'Interface + Streams' },
+  { key:'service',     name:'Service Layer',         desc:'Dependency Injection' },
+  { key:'singleton',   name:'Singleton',             desc:'Thread-safe + volatile' },
+  { key:'exception',   name:'Custom Exceptions',     desc:'Checked vs Unchecked' },
+];
+
+const snippets = {
+entity: `<span class="cmt">// Book.java — Entity class demonstrating OOP principles</span>
+<span class="kw">import</span> java.util.UUID;
+
+<span class="kw">public class</span> <span class="cls">Book</span> {
+    <span class="cmt">// Private fields — Encapsulation</span>
+    <span class="kw">private final</span> String id;
+    <span class="kw">private</span>       String isbn;
+    <span class="kw">private</span>       String title;
+    <span class="kw">private</span>       String author;
+    <span class="kw">private</span>       String genre;
+    <span class="kw">private</span>       <span class="kw">int</span>    totalCopies;
+    <span class="kw">private</span>       <span class="kw">int</span>    availableCopies;
+
+    <span class="cmt">// Constructor</span>
+    <span class="kw">public</span> <span class="cls">Book</span>(String isbn, String title,
+                 String author, <span class="kw">int</span> copies) {
+        <span class="kw">this</span>.id              = UUID.randomUUID().toString();
+        <span class="kw">this</span>.isbn            = isbn;
+        <span class="kw">this</span>.title           = title;
+        <span class="kw">this</span>.author          = author;
+        <span class="kw">this</span>.totalCopies     = copies;
+        <span class="kw">this</span>.availableCopies = copies;
+    }
+
+    <span class="cmt">// Business logic methods</span>
+    <span class="kw">public boolean</span> isAvailable() {
+        <span class="kw">return</span> availableCopies &gt; <span class="num">0</span>;
+    }
+
+    <span class="kw">public void</span> borrowCopy() {
+        <span class="kw">if</span> (!isAvailable())
+            <span class="kw">throw new</span> <span class="cls">BookNotAvailableException</span>(
+                <span class="str">"No copies available for: "</span> + title);
+        availableCopies--;
+    }
+
+    <span class="kw">public void</span> returnCopy() {
+        <span class="kw">if</span> (availableCopies &gt;= totalCopies)
+            <span class="kw">throw new</span> <span class="cls">IllegalStateException</span>(
+                <span class="str">"All copies already returned"</span>);
+        availableCopies++;
+    }
+
+    <span class="cmt">// Getters (no setters for immutable fields)</span>
+    <span class="kw">public</span> String getId()     { <span class="kw">return</span> id; }
+    <span class="kw">public</span> String getTitle()  { <span class="kw">return</span> title; }
+    <span class="kw">public</span> String getAuthor() { <span class="kw">return</span> author; }
+
+    <span class="ann">@Override</span>
+    <span class="kw">public</span> String toString() {
+        <span class="kw">return</span> String.format(
+            <span class="str">"Book{id=%s, title='%s', available=%d/%d}"</span>,
+            id, title, availableCopies, totalCopies);
+    }
+}`,
+member: `<span class="cmt">// Inheritance: abstract base + concrete subclass</span>
+<span class="kw">import</span> java.time.LocalDate;
+<span class="kw">import</span> java.util.ArrayList;
+<span class="kw">import</span> java.util.List;
+
+<span class="kw">public abstract class</span> <span class="cls">LibraryUser</span> {
+    <span class="kw">protected</span> String    id;
+    <span class="kw">protected</span> String    name;
+    <span class="kw">protected</span> String    email;
+
+    <span class="cmt">// Abstract — subclasses define their own limit</span>
+    <span class="kw">public abstract int</span> getMaxBorrowLimit();
+
+    <span class="kw">public</span> String getName()  { <span class="kw">return</span> name; }
+    <span class="kw">public</span> String getEmail() { <span class="kw">return</span> email; }
+}
+
+<span class="kw">public class</span> <span class="cls">Member</span> <span class="kw">extends</span> <span class="cls">LibraryUser</span> {
+    <span class="kw">private</span> List&lt;String&gt; borrowedBookIds;
+    <span class="kw">private</span> LocalDate    joinDate;
+
+    <span class="kw">public</span> <span class="cls">Member</span>(String name, String email) {
+        <span class="kw">this</span>.id             = <span class="str">"M"</span> + generateId();
+        <span class="kw">this</span>.name           = name;
+        <span class="kw">this</span>.email          = email;
+        <span class="kw">this</span>.borrowedBookIds = <span class="kw">new</span> <span class="cls">ArrayList</span>&lt;&gt;();
+        <span class="kw">this</span>.joinDate        = LocalDate.now();
+    }
+
+    <span class="ann">@Override</span>
+    <span class="kw">public int</span> getMaxBorrowLimit() {
+        <span class="kw">return</span> <span class="num">3</span>; <span class="cmt">// Regular members: 3 books max</span>
+    }
+
+    <span class="kw">public boolean</span> canBorrow() {
+        <span class="kw">return</span> borrowedBookIds.size() &lt; getMaxBorrowLimit();
+    }
+
+    <span class="kw">public void</span> addBorrowedBook(String bookId) {
+        <span class="kw">if</span> (!canBorrow())
+            <span class="kw">throw new</span> <span class="cls">BorrowLimitException</span>(
+                name + <span class="str">" has reached borrow limit"</span>);
+        borrowedBookIds.add(bookId);
+    }
+}
+
+<span class="cmt">// Premium member with higher limit (Polymorphism)</span>
+<span class="kw">public class</span> <span class="cls">PremiumMember</span> <span class="kw">extends</span> <span class="cls">LibraryUser</span> {
+    <span class="ann">@Override</span>
+    <span class="kw">public int</span> getMaxBorrowLimit() { <span class="kw">return</span> <span class="num">10</span>; }
+}`,
+repo: `<span class="cmt">// Repository Pattern — separates data access from business logic</span>
+<span class="kw">import</span> java.util.*;
+<span class="kw">import</span> java.util.stream.Collectors;
+
+<span class="kw">public interface</span> <span class="cls">BookRepository</span> {
+    <span class="kw">void</span>              save(<span class="cls">Book</span> book);
+    Optional&lt;<span class="cls">Book</span>&gt;    findById(String id);
+    List&lt;<span class="cls">Book</span>&gt;        findAll();
+    List&lt;<span class="cls">Book</span>&gt;        findByGenre(String genre);
+    List&lt;<span class="cls">Book</span>&gt;        searchByTitle(String query);
+    List&lt;<span class="cls">Book</span>&gt;        findAvailable();
+    <span class="kw">void</span>              deleteById(String id);
+    <span class="kw">boolean</span>           existsById(String id);
+}
+
+<span class="kw">public class</span> <span class="cls">InMemoryBookRepository</span>
+        <span class="kw">implements</span> <span class="cls">BookRepository</span> {
+
+    <span class="kw">private final</span> Map&lt;String, <span class="cls">Book</span>&gt; store = <span class="kw">new</span> HashMap&lt;&gt;();
+
+    <span class="ann">@Override</span>
+    <span class="kw">public void</span> save(<span class="cls">Book</span> book) {
+        store.put(book.getId(), book);
+    }
+
+    <span class="ann">@Override</span>
+    <span class="kw">public</span> Optional&lt;<span class="cls">Book</span>&gt; findById(String id) {
+        <span class="kw">return</span> Optional.ofNullable(store.get(id));
+    }
+
+    <span class="ann">@Override</span>
+    <span class="kw">public</span> List&lt;<span class="cls">Book</span>&gt; searchByTitle(String query) {
+        <span class="kw">return</span> store.values().stream()         <span class="cmt">// Java 8 Stream</span>
+            .filter(b -&gt; b.getTitle()
+                .toLowerCase()
+                .contains(query.toLowerCase()))
+            .sorted(Comparator.comparing(
+                <span class="cls">Book</span>::getTitle))              <span class="cmt">// Method reference</span>
+            .collect(Collectors.toList());
+    }
+
+    <span class="ann">@Override</span>
+    <span class="kw">public</span> List&lt;<span class="cls">Book</span>&gt; findAvailable() {
+        <span class="kw">return</span> store.values().stream()
+            .filter(<span class="cls">Book</span>::isAvailable)         <span class="cmt">// Method reference</span>
+            .collect(Collectors.toList());
+    }
+}`,
+service: `<span class="cmt">// Service Layer — business logic + Dependency Injection</span>
+<span class="kw">public class</span> <span class="cls">LibraryService</span> {
+
+    <span class="kw">private final</span> <span class="cls">BookRepository</span>        bookRepo;
+    <span class="kw">private final</span> <span class="cls">MemberRepository</span>      memberRepo;
+    <span class="kw">private final</span> <span class="cls">TransactionRepository</span>  txnRepo;
+
+    <span class="cmt">// Constructor injection (Dependency Inversion Principle)</span>
+    <span class="kw">public</span> <span class="cls">LibraryService</span>(
+            <span class="cls">BookRepository</span>       bookRepo,
+            <span class="cls">MemberRepository</span>     memberRepo,
+            <span class="cls">TransactionRepository</span> txnRepo) {
+        <span class="kw">this</span>.bookRepo   = bookRepo;
+        <span class="kw">this</span>.memberRepo = memberRepo;
+        <span class="kw">this</span>.txnRepo    = txnRepo;
+    }
+
+    <span class="kw">public</span> <span class="cls">Transaction</span> issueBook(
+            String memberId, String bookId) {
+
+        <span class="cls">Member</span> member = memberRepo
+            .findById(memberId)
+            .orElseThrow(() -&gt;
+                <span class="kw">new</span> <span class="cls">NotFoundException</span>(
+                    <span class="str">"Member not found: "</span> + memberId));
+
+        <span class="cls">Book</span> book = bookRepo
+            .findById(bookId)
+            .orElseThrow(() -&gt;
+                <span class="kw">new</span> <span class="cls">NotFoundException</span>(
+                    <span class="str">"Book not found: "</span> + bookId));
+
+        <span class="kw">if</span> (!member.canBorrow())
+            <span class="kw">throw new</span> <span class="cls">BorrowLimitException</span>(
+                <span class="str">"Borrow limit reached for "</span> + member.getName());
+
+        book.borrowCopy();
+        member.addBorrowedBook(bookId);
+
+        <span class="cls">Transaction</span> txn = <span class="kw">new</span> <span class="cls">Transaction</span>(
+            memberId, bookId,
+            LocalDate.now(),
+            LocalDate.now().plusDays(<span class="num">14</span>));
+
+        <span class="kw">return</span> txnRepo.save(txn);
+    }
+
+    <span class="kw">public void</span> returnBook(String txnId) {
+        <span class="cls">Transaction</span> txn = txnRepo
+            .findById(txnId)
+            .orElseThrow(() -&gt;
+                <span class="kw">new</span> <span class="cls">NotFoundException</span>(txnId));
+
+        txn.markReturned();
+        bookRepo.findById(txn.getBookId())
+                .ifPresent(<span class="cls">Book</span>::returnCopy);
+        memberRepo.findById(txn.getMemberId())
+                  .ifPresent(m -&gt; m.removeBorrowedBook(txn.getBookId()));
+    }
+}`,
+singleton: `<span class="cmt">// Singleton Pattern — single shared database connection</span>
+<span class="kw">import</span> java.sql.*;
+
+<span class="kw">public class</span> <span class="cls">DatabaseConnection</span> {
+
+    <span class="cmt">// volatile ensures visibility across threads (Java Memory Model)</span>
+    <span class="kw">private static volatile</span> <span class="cls">DatabaseConnection</span> instance;
+    <span class="kw">private</span> Connection connection;
+
+    <span class="cmt">// Private constructor — prevents external instantiation</span>
+    <span class="kw">private</span> <span class="cls">DatabaseConnection</span>() {
+        <span class="kw">try</span> {
+            Class.forName(<span class="str">"org.h2.Driver"</span>);
+            connection = DriverManager.getConnection(
+                <span class="str">"jdbc:h2:mem:library;DB_CLOSE_DELAY=-1"</span>,
+                <span class="str">"sa"</span>, <span class="str">""</span>);
+        } <span class="kw">catch</span> (Exception e) {
+            <span class="kw">throw new</span> <span class="cls">RuntimeException</span>(
+                <span class="str">"DB init failed"</span>, e);
+        }
+    }
+
+    <span class="cmt">// Double-checked locking for thread safety</span>
+    <span class="kw">public static</span> <span class="cls">DatabaseConnection</span> getInstance() {
+        <span class="kw">if</span> (instance == <span class="kw">null</span>) {                 <span class="cmt">// 1st check (no lock)</span>
+            <span class="kw">synchronized</span> (<span class="cls">DatabaseConnection</span>.<span class="kw">class</span>) {
+                <span class="kw">if</span> (instance == <span class="kw">null</span>)         <span class="cmt">// 2nd check (with lock)</span>
+                    instance = <span class="kw">new</span> <span class="cls">DatabaseConnection</span>();
+            }
+        }
+        <span class="kw">return</span> instance;
+    }
+
+    <span class="kw">public</span> Connection getConnection() {
+        <span class="kw">return</span> connection;
+    }
+}
+
+<span class="cmt">// Usage:</span>
+<span class="cmt">// Connection conn = DatabaseConnection.getInstance().getConnection();</span>`,
+exception: `<span class="cmt">// Custom Exception Hierarchy for the Library System</span>
+
+<span class="cmt">// Base checked exception (must be handled or declared)</span>
+<span class="kw">public class</span> <span class="cls">LibraryException</span> <span class="kw">extends</span> <span class="cls">Exception</span> {
+    <span class="kw">public</span> <span class="cls">LibraryException</span>(String msg) {
+        <span class="kw">super</span>(msg);
+    }
+    <span class="kw">public</span> <span class="cls">LibraryException</span>(String msg, Throwable cause) {
+        <span class="kw">super</span>(msg, cause);
+    }
+}
+
+<span class="cmt">// Specific checked exceptions</span>
+<span class="kw">public class</span> <span class="cls">BookNotAvailableException</span>
+        <span class="kw">extends</span> <span class="cls">LibraryException</span> {
+    <span class="kw">private final</span> String bookId;
+    <span class="kw">public</span> <span class="cls">BookNotAvailableException</span>(String bookId) {
+        <span class="kw">super</span>(<span class="str">"Book not available: "</span> + bookId);
+        <span class="kw">this</span>.bookId = bookId;
+    }
+    <span class="kw">public</span> String getBookId() { <span class="kw">return</span> bookId; }
+}
+
+<span class="kw">public class</span> <span class="cls">BorrowLimitException</span>
+        <span class="kw">extends</span> <span class="cls">LibraryException</span> {
+    <span class="kw">public</span> <span class="cls">BorrowLimitException</span>(String msg) {
+        <span class="kw">super</span>(msg);
+    }
+}
+
+<span class="cmt">// Unchecked (RuntimeException) — programming error</span>
+<span class="kw">public class</span> <span class="cls">NotFoundException</span>
+        <span class="kw">extends</span> <span class="cls">RuntimeException</span> {
+    <span class="kw">public</span> <span class="cls">NotFoundException</span>(String resource) {
+        <span class="kw">super</span>(<span class="str">"Not found: "</span> + resource);
+    }
+}
+
+<span class="cmt">// Usage in service layer:</span>
+<span class="kw">try</span> {
+    libraryService.issueBook(memberId, bookId);
+} <span class="kw">catch</span> (<span class="cls">BookNotAvailableException</span> e) {
+    System.out.println(<span class="str">"Book unavailable: "</span> + e.getBookId());
+} <span class="kw">catch</span> (<span class="cls">BorrowLimitException</span> e) {
+    System.out.println(<span class="str">"Limit reached: "</span> + e.getMessage());
+}`
+};
+
+function initCodePanel() {
+  const grid = document.getElementById('pattern-grid');
+  grid.innerHTML = patterns.map((p,i) => `
+    <div class="pattern-card${i===0?' active':''}" onclick="selectPattern(this,'${p.key}')">
+      <div class="pattern-name">${escHtml(p.name)}</div>
+      <div class="pattern-desc">${escHtml(p.desc)}</div>
+    </div>`).join('');
+  document.getElementById('code-display').innerHTML = snippets[patterns[0].key];
+}
+
+function selectPattern(el, key) {
+  document.querySelectorAll('.pattern-card').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  const pre = document.getElementById('code-display');
+  pre.style.opacity='0';
+  setTimeout(()=>{ pre.innerHTML = snippets[key]; pre.style.opacity='1'; }, 150);
+}
+
+// ═══════════════════════════════
+//  INIT
+// ═══════════════════════════════
+refresh();
+initCodePanel();
+</script>
+</body>
+</html>
